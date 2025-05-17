@@ -1,22 +1,42 @@
-CC      := gcc
 PKG_CFG := pkg-config
-PKG_CFLAGS := $(PKG_CFG) --cflags spice-client-gtk-3.0
-PKG_LIBS   := $(PKG_CFG) --libs   spice-client-gtk-3.0
-
-CFLAGS  := -Wall -Wextra -O2 $(shell $(PKG_CFLAGS))
-LDFLAGS := $(shell $(PKG_LIBS))
+CFLAGS  := -Wall -Wextra -O2 $(shell $(PKG_CFG) --cflags spice-client-gtk-3.0)
+LDFLAGS := $(shell $(PKG_CFG) --libs   spice-client-gtk-3.0)
 
 SRCS    := main.c capture.c
-OBJS    := $(SRCS:.c=.o)
 TARGET  := spicesnapshot
 
-all: $(TARGET)
+ARCHS   := amd64 arm64
+OS      := linux
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
 
-%.o: %.c capture.h
-	$(CC) $(CFLAGS) -c $< -o $@
+DISTDIR := dist
+
+.PHONY: all dist clean
+
+all: dist
+
+dist: | $(DISTDIR)
+	@for arch in $(ARCHS); do \
+	  case $$arch in \
+	    amd64) CC=gcc ;; \
+	    arm64) CC=aarch64-linux-gnu-gcc ;; \
+	    *) echo "Unknown arch $$arch, skipping"; continue ;; \
+	  esac; \
+	  if ! command -v $$CC >/dev/null 2>&1; then \
+	    echo "Skipping $$arch: $$CC not found"; \
+	    continue; \
+	  fi; \
+	  echo "Building $(TARGET) for $(OS)/$$arch..."; \
+	  $$CC $(CFLAGS) -o $(DISTDIR)/$(TARGET)-$(OS)-$$arch-$(VERSION) $(SRCS) $(LDFLAGS); \
+	  echo "Creating archive: $(TARGET)-$(OS)-$$arch-$(VERSION).tar.gz"; \
+	  tar -C $(DISTDIR) -czf $(DISTDIR)/$(TARGET)-$(OS)-$$arch-$(VERSION).tar.gz \
+	    $(TARGET)-$(OS)-$$arch-$(VERSION); \
+	done
+	@echo "Done. Packages in $(DISTDIR)/"
+
+$(DISTDIR):
+	mkdir -p $(DISTDIR)
 
 clean:
-	$(RM) $(OBJS) $(TARGET)
+	rm -rf $(DISTDIR)
