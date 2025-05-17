@@ -6,8 +6,6 @@ It supports optional password authentication, configurable frame rate/count, and
 Inspired by `vncsnapshot` for VNC, this tool helps automate auditing or monitoring of virtual machines using the SPICE protocol.  
 Originally developed for use with [ThugHunter](https://github.com/smegg99/ThugHunter), which also utilizes `vncsnapshot`.
 
----
-
 ## Features
 
 - SPICE protocol support  
@@ -15,9 +13,7 @@ Originally developed for use with [ThugHunter](https://github.com/smegg99/ThugHu
 - Configurable FPS & multi-frame capture  
 - Saves output as `.png`  
 
----
-
-## 🛠 Installation
+## Installation
 
 ### Debian / Ubuntu
 
@@ -62,7 +58,7 @@ make
 sudo make install
 ```
 
-### ⚙️ Usage
+### Usage
 
 ```bash
 spicesnapshot version 1.0
